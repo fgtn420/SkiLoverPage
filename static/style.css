@@ -1,0 +1,569 @@
+/* ----- PAGE DIMENSIONS + SCROLL CONTROL --------------------------- */
+html, body{
+  width:100%;
+  height:104%;
+  overflow-x:hidden;   /* ← kills the sideways scroll bar */
+  /* keep normal vertical scrolling */
+}
+
+/* Base page reset */
+body {
+  margin: 0;
+  padding: 0;
+  font-family: Arial, sans-serif;
+  padding-bottom: 120px;
+}
+
+/* Utility */
+.hidden { display: none; }
+
+/* blurred cover behind, fills 100% width & height */
+.bg-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url('/static/frame1.png') center/cover no-repeat;
+  filter: blur(30px);
+  transform: scale(1.1);
+  z-index: 1;
+  box-shadow:
+    inset 20px 0 200px rgba(158, 75, 75, 0.7),   /* darken 20px in from left edge */
+    inset -20px 0 100px rgba(0,0,0,0.95);
+  pointer-events: none;
+}
+
+
+/* sharp centered image on top, full height, auto width */
+.bg-container::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: url('/static/frame1.png') center center no-repeat;
+  background-size: 68% 100%;
+  z-index: 1;
+  pointer-events: none;
+}
+
+/* make the blur/cover layers span the full viewport */
+.bg-container {
+  position: absolute;
+  inset: 0;           /* shorthand for top:0; right:0; bottom:0; left:0 */
+  width: 100%;
+  height: 100%;
+  z-index: 2;         /* sit behind all your UI panels */
+}
+
+/* Leaflet container overflow */
+.leaflet-container {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Map positioning */
+.map-wrapper {
+  position: absolute;
+  top: 34%;
+  left: 38%;
+  transform: translateX(-50%);
+  width: 700px;    /* same as #map width */
+  height: 560px;   /* same as #map height */
+  z-index: 3;
+}
+
+/* Your map fills the wrapper */
+.map-wrapper #map {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 2px solid #fff;
+  border-radius: 24px;
+  box-shadow: 
+    0 8px 24px rgba(0, 0, 0, 0.15),   /* soft drop shadow */
+    inset 0 0 4px rgba(0, 0, 0, 0.05); /* slight inner glow for contrast */
+}
+
+/* Chosen station box sits at the top-right of the wrapper */
+.map-wrapper #chosenStation {
+  position: absolute;
+  top: -50px;     /* lift it just above the map */
+  right: 0;        /* flush with the map’s right edge */
+  background: rgba(255,255,255,0.9);
+  padding: 0.3em 0.6em;
+  border-radius: 24px;
+  z-index: 2;
+  display: inline-block;
+  text-align: center;
+  border: solid 2px grey;
+  padding: 14px 14px;
+  box-shadow: 0 1px 6px rgba(32,33,36,0.28);
+  z-index: 2;
+}
+
+.original-marker {
+  width: 18px;
+  height: 18px;
+  background-color: red;
+  border: 3px solid rgb(189, 14, 14);
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(0,0,0,0.3);
+}
+
+/* Shared box‐sizing */
+#stationSearch,
+#suggestions,
+#recommendList {
+  box-sizing: border-box;
+}
+
+/* Search wrapper */
+.search-wrapper {
+  position: absolute;
+  top: -49%;
+  left: 0;
+  display: inline-block;
+  width: 300px;
+  max-width: 400px;
+  z-index: 2;
+}
+
+/* Google-style input */
+#stationSearch {
+  width: 100%;
+  padding: 14px 14px;
+  font-size: 16px;
+  border: 1px solid #dfe1e5;
+  border-radius: 24px;
+  outline: none;
+  transition: box-shadow .2s, border-color .2s;
+}
+
+#stationSearch:focus {
+  border-color: #4285f4;
+  box-shadow: 0 1px 6px rgba(32,33,36,0.28);
+}
+
+
+
+/* Dropdown styling (both search & recommend) */
+#suggestions,
+#recommendList {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: #fff;
+  border: 1px solid #dfe1e5;
+  border-top: none;
+  border-radius: 0 0 24px 24px;
+  box-shadow: 0 4px 6px rgba(32,33,36,0.2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 10;
+}
+
+#suggestions.hidden,
+#recommendList.hidden {
+  display: none;
+}
+
+/* Dropdown items */
+#suggestions li,
+#recommendList li {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 15px;
+  color: #202124;
+  text-transform: capitalize;
+}
+
+#suggestions li:hover,
+#suggestions li.active,
+#recommendList li:hover {
+  background-color: #f1f3f4;
+}
+
+/* Recommend button */
+.recommend-container {
+  position: absolute;
+  top: -49%;
+  left: 70%;
+  transform: translateX(-50%);
+  z-index: 2;
+}
+
+#recommendBtn {
+  width: 300px;              /* match input width */
+  padding: 14px 14px;        /* same padding */
+  font-size: 16px;           /* same font-size */
+  border: 1px solid #dfe1e5; /* same border */
+  border-radius: 24px;       /* rounded corners */
+  background: #fff;
+  cursor: pointer;
+  text-align: left;          /* text on left like search */
+}
+
+#stationSearch:focus,
+#recommendBtn:hover {
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.18),
+    0 3px 6px rgba(0, 0, 0, 0.10);
+}
+
+#stationSearch.open,
+#recommendBtn.open {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* ──────────────────────────────────────────────────────────────
+   Frosted-glass token  (same palette as your buttons & panels)
+   ──────────────────────────────────────────────────────────────*/
+.glass-light{
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* ── Output container ───────────────────────────────────────── */
+#output{
+  position:absolute;
+  cursor: move;
+  bottom:20%;
+  left:60%;
+  width:320px;
+  height:490px;
+  padding:15px;
+  font-size:0.92rem;
+  z-index:4;
+  background: rgba(255,255,255,0.4);
+
+  /* blur whatever is behind this box – text inside stays sharp */
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* 1) Make the close-button bigger and centered in its hit area */
+#output .close-btn {
+  position: absolute;
+  display:inline-block;
+  top: 8px;       /* pull it down a bit */
+  right: 8px;         /* pull it in a bit */
+  border-radius: 8px;
+  width: 26px;
+  height: 26px;
+  font-size: 2rem;      /* bigger “×” */
+  text-align: center;
+  padding: 0;
+  cursor: pointer;
+  margin:0;
+  line-height:24px;
+}
+
+#outputInner {
+  margin: 12px;
+  padding: 0;
+}
+
+#output .close-btn:hover {
+  color: #000;
+}
+
+#output.glass-light{                     /* inherit the glass look */
+  border:1px solid rgba(255,255,255,0.4);
+}
+
+#panelStation{
+  display:inline-block;
+  font-size:1.4em;
+  font-weight: bold;
+  padding:20px;
+  padding-top: 4px;
+  padding-bottom: 12px;
+}
+
+p{
+  padding-left: 10px;
+  padding-bottom: 0;
+}
+/* ── Daily-summary column & cards ───────────────────────────── */
+.daily-summary-container{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  max-height:315px;          /* scroll if overflow */
+  overflow-y:auto;
+  padding: 4px;         /* keep scrollbar off text */
+  z-index: 3;
+  margin-bottom: 4px;
+}
+
+
+/* ── 2×2 Grid for the four metrics ──────────────────────────── */
+.day-summary {
+  display: grid;
+  grid-template-columns: 1fr 1fr;   /* two equal-width columns */
+  grid-auto-rows: auto;
+  gap: 6px 12px;                    /* row-gap 6px, column-gap 12px */
+  padding: 16px 16px;               /* your existing padding */
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(8px);
+  border-radius: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+/* have the date span both columns across the top */
+.day-summary .date {
+  grid-column: 1 / -1;
+  margin-bottom: 8px;
+  font-weight: 600;
+}
+
+/* each metric automatically fills one cell */
+.day-summary .meteo {
+  /* if you used inline-blocks before, override those: */
+  display: block;
+  margin: 0;
+}
+
+:root{
+  --left-panel-w : 250px;   /* Popular resorts  (left)  */
+  --right-panel-w: 250px;   /* Recent checks    (right) */
+  --bottom-h     : 110px;
+}
+
+#popularPanel{
+  position:fixed;
+  top:0; left:0;
+  width:var(--left-panel-w); height:100vh;
+  padding:30px 26px;
+  overflow-y:auto;
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  background:linear-gradient(to right,
+              rgba(255,255,255,0.60)  0%,
+              rgba(255,255,255,0.25) 75%,
+              rgba(255,255,255,0.00)100%);
+  font-family:"Inter",system-ui,sans-serif;
+  color:#0a0a0a;
+  z-index:3;
+}
+
+/* 2) header ────────────────────────────────────────────────────*/
+#popularPanel h3{
+  margin:0 0 1rem;
+  font-size:1.4rem;
+  font-weight:700;
+  letter-spacing:0.15px;
+}
+
+/* 3) list container ────────────────────────────────────────────*/
+#popularList{
+  list-style:none;
+  padding:0; margin:0;
+  margin-top: 30px;
+}
+
+/* 4) list items (resorts) ───────────────────────────────────────*/
+#popularList li{
+  cursor:pointer;
+  padding:0.45rem 0.35rem;
+  border-radius:0.5rem;
+  transition: background 180ms ease, transform 150ms ease;
+  font-size:1.15rem;
+  line-height:3;
+}
+
+#popularList li + li{             /* little vertical rhythm */
+  margin-top:0.15rem;
+}
+
+#popularList li:hover{
+  background:rgba(255,255,255,0.22);
+  transform:translateX(4px);
+}
+
+#popularList li:active{
+  background:rgba(255,255,255,0.32);
+  transform:translateX(6px);
+}
+
+/* ───────────────────────────────────────────────────────
+   LEFT “RECENT” SIDEBAR (dark frosted glass)
+   ───────────────────────────────────────────────────────*/
+#historyPanel{
+  position:fixed;
+  top:0; right:0;
+  width:var(--right-panel-w); height:100vh;
+  padding:30px 26px;
+  overflow-y:auto;
+  backdrop-filter:blur(10px);
+  -webkit-backdrop-filter:blur(10px);
+  background:linear-gradient(to left,
+              rgba(0,0,0,0.55)  0%,
+              rgba(0,0,0,0.30) 75%,
+              rgba(0,0,0,0.00)100%);
+  color:#f2f2f2;
+  font-family:"Inter",system-ui,sans-serif;
+  text-align:right;
+  z-index:3;
+}
+
+/* if you want the panels to pop even more, add on hover */
+#popularPanel,
+#historyPanel {
+  box-shadow:
+    8px 0 24px rgba(0, 0, 0, 0.4),
+    8px 0 24px rgba(0, 0, 0, 0.4);
+}
+
+#historyPanel h3{
+  margin:0 0 1rem;
+  font-size:1.4rem;
+  font-weight:700;
+  letter-spacing:0.15px;
+}
+
+#historyList{
+  list-style:none;
+  padding:0; margin:0;
+  margin-top: 30px;
+  font-size:1.1rem;
+}
+
+#historyList li{
+  line-height:2;
+  padding:0.3rem 0.25rem;
+  border-radius:0.45rem;
+  cursor:pointer;
+  transition:background 160ms ease, transform 160ms ease;
+}
+
+#historyList li + li{           /* spacing between items */
+  margin-top:0.15rem;
+}
+
+#historyList li:hover{
+  background:rgba(255,255,255,0.15);
+  transform:translateX(4px);
+}
+
+
+/* when body.play-video is present, fade video in and still-image out */
+body.play-video .bg-video{ opacity:1;}
+
+/* simultaneously fade the two ::before/::after image layers out */
+body.play-video .bg-container::before,
+body.play-video .bg-container::after{ opacity:0; transition:opacity 1s ease; }
+
+/* override the inline margin/padding you might have */
+#output .play-btn {
+  position: absolute;
+  font-size: 1.2rem;
+  width: 280px;
+  height: 40px;
+  bottom: 12px;               /* 12px up from the bottom edge */
+  left: 50%;                  /* center horizontally */
+  transform: translateX(-50%);
+  margin-bottom: 5px;                  /* kill any auto-margins */
+  margin-top: 10px;
+  border: 1px solid #dfe1e5;
+  border-radius: 24px;
+  outline: none;
+  box-shadow: 0 1px 6px rgba(32,33,36,0.3);
+}
+
+.bg-video{
+  position:absolute;
+  inset:0;
+  object-fit:contain;
+  z-index:3;
+  transition:opacity 1s ease;
+  pointer-events:none;
+}
+
+
+#mediaLayer,
+#mediaLayer > * {                     /* geometry */
+  position: fixed;
+  pointer-events: none;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  z-index: -2;
+}
+
+#mediaLayer > * {                    /* fade control */
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+
+body.street-mode #mediaLayer, #streetFrame {
+  pointer-events: auto;
+  z-index: 11;
+}
+
+body.street-mode #output{ position: relative; z-index:  12; }
+
+/* the media controller toggles these directly */
+#stillImg   { opacity: 1; pointer-events: none; z-index: 2;}   /* default */
+
+/* hide UI while Street-View is visible */
+body.street-mode #popularPanel,
+body.street-mode #historyPanel,
+body.street-mode .map-wrapper,
+body.street-mode .search-wrapper,
+body.street-mode .recommend-container,
+body.street-mode .bg-container::before,
+body.street-mode .bg-container::after {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .6s ease;
+}
+
+.social-links {
+  position: absolute;
+  bottom: -8rem;
+  left: 24rem;
+  display: flex;
+  gap: 4rem;
+  z-index: 10;                   /* above everything else */
+}
+.social-links a {
+  color: rgba(255,255,255,0.7);   /* semi-opaque white */
+  transition: color 0.2s ease-in-out;
+}
+.social-links a:hover {
+  color: #fff;                    /* full white on hover */
+}
+
+/* tweak SVG sizing if you ever want smaller/larger */
+.social-links svg {
+  display: block;
+  width: 60px;
+  height: 60px;
+}
+.social-links img {
+  display: block;          /* remove any inline-gap */
+  width: 60px;             /* match your SVG size */
+  height: 60px;
+  object-fit: contain;     /* preserve aspect */
+}
+
+/* (optional) remove any default border on linked images */
+.social-links a img {
+  border: none;
+}
+
+/* existing hover rule still applies */
+.social-links a:hover img {
+  box-shadow: 0 3px 18px rgba(32,33,36,0.28);
+}
+

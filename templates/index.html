@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Station + Ski-Resort Finder</title>
+
+  <!-- Leaflet CSS & JS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css">
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script defer src="/static/map.js"></script>
+  <script defer src="/static/connect.js"></script>
+  <script>
+    window.GOOGLE_JS_API_KEY = "{{ google_js_api_key }}";
+  </script>
+  <link rel="stylesheet" href="/static/style.css" type="text/css">
+</head>
+<body>
+  <aside id="popularPanel">
+    <h3>Popular ski resorts</h3>
+    <ul id="popularList"></ul>
+  </aside>
+
+  <aside id="historyPanel">
+    <h3>Recent weather checks</h3>
+    <ul id="historyList"></ul>
+  </aside>
+
+  <div class="bg-container">
+    
+
+    <div class="map-wrapper">
+      <div id="map"></div>
+      <!-- Chosen station display -->
+      <div id="chosenStation" class="hidden">
+        Selected station: <strong id="chosenStationName"></strong>
+      </div>
+
+      <!-- Recommend button + dropdown -->
+      <div class="recommend-container">
+        <button id="recommendBtn" onclick="fetchRecommendations()">
+          See recommended destinations
+        </button>
+        <ul id="recommendList" class="hidden"></ul>
+      </div>
+
+      <!-- Search bar up top -->
+      <div class="search-wrapper" id="searchWrapper">
+        <input
+          id="stationSearch"
+          placeholder="Search for a station…"
+          autocomplete="off"
+          oninput="searchStations()"
+          onkeydown="handleKeydown(event)"
+        >
+        <ul id="suggestions" class="hidden"></ul>
+      </div>
+    </div>
+  </div>
+  <!-- Output pane down on the slope -->
+  <div id="output" class="glass-light hidden">
+      <button type="button" class="close-btn" aria-label="Close">&times;</button> 
+      <button id="playVideoBtn" class="play-btn glass-light">Go here</button>
+    <div id="outputInner"></div>
+  </div>
+  <div id="mediaLayer">
+    <img   id="stillImg"  src="/static/frame1.png" alt="">
+    <video id="bgVideo"   muted playsinline></video>
+    <div     
+      id="streetFrame"
+      class="bg-video">
+    </div>
+  </div>
+  <div class="social-links">
+    <a href="https://github.com/fgtn420?tab=projects" target="_blank" aria-label="GitHub">
+      <!-- GitHub SVG icon (24×24) -->
+      <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+        <path d="M12 .297a12 12 0 00-3.793 23.396c.6.112.82-.26.82-.578v-2.03c-3.338.726-4.042-1.612-4.042-1.612-.546-1.386-1.333-1.756-1.333-1.756-1.089-.745.083-.73.083-.73 1.205.085 1.84 1.238 1.84 1.238 1.07 1.834 2.809 1.304 3.495.997.108-.775.419-1.305.762-1.605-2.665-.3-5.467-1.333-5.467-5.933 0-1.31.467-2.38 1.235-3.22-.124-.303-.535-1.523.117-3.176 0 0 1.008-.322 3.3 1.23a11.5 11.5 0 016 0c2.29-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.873.118 3.176.77.84 1.233 1.91 1.233 3.22 0 4.61-2.807 5.63-5.48 5.922.431.372.815 1.102.815 2.222v3.293c0 .32.218.694.825.576A12.005 12.005 0 0012 .297"></path>
+      </svg>
+    </a>
+    <a href="https://www.linkedin.com/in/gergő-nagy-25b7a632b" 
+       target="_blank" 
+       aria-label="LinkedIn">
+      <img src="/static/linkedin.png" alt="LinkedIn logo">
+    </a>
+  </div>
+</body>
+</html>
